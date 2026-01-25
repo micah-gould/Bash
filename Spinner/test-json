@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+var=$(jq -r ".\"$1\".frames[]" spinners.json 2>/dev/null)
+echo $?
+printf 'test: %s\r' "$var"
+sleep 1
+echo "over"

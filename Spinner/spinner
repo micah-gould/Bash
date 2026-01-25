@@ -1,0 +1,102 @@
+#!/usr/bin/env bash
+
+SPINNER_PID=
+DEBUG=false
+THEME=default
+CHARS=('<\>' '<|>' '</>' '<–>')
+
+usage() {
+	local prog=${0##*/}
+	cat <<-EOF
+	Usage: $prog [options] <cmd>
+
+	Run a command with an animated spinner
+
+	Options:
+	  -d <debug>	enable debug output
+	  -t <theme>	theme to use, default is $THEME
+	  -l <list>	print a list of valid themes and exit
+	  -h <help>	print this message and exit
+	EOF
+}
+
+spinner() {
+	local c
+	while true; do
+		for c in "${CHARS[@]}"; do
+			printf ' %s running command: %s\r' "$c" "$*"
+			sleep .2
+		done
+	done
+}
+
+debug() {
+	if $DEBUG; then
+		echo "[$$] $*" >&2
+	fi
+}
+
+cleanup() {
+	if [[ -n $SPINNER_PID ]]; then
+		debug "killing spinner ($SPINNER_PID)"
+		kill "$SPINNER_PID"
+	fi
+
+	debug "finished spinner"
+	printf "\033[K\r"
+}
+
+load-theme() {
+	local theme=$1
+	local CHARS_JSON=$(jq -r ".\"$theme\".frames[]" spinners.json 2>/dev/null)
+	if [[ -n $CHARS_JSON ]]; then
+		mapfile -t CHARS <<< "$CHARS_JSON"
+		debug "setting theme to: $theme"
+	elif [[ $theme != "default" ]]; then
+		echo "bad theme name: $theme"
+		echo "using default theme"
+	else
+		debug "no theme set"
+	fi
+}
+
+theme-list() {
+	jq -r 'keys[]' spinners.json
+}
+
+main() {
+	local apt OPTIND OPTARG
+	while getopts 'dt:lh' opt; do
+		case "$opt" in
+			d) DEBUG=true;;
+			t) THEME=$OPTARG;;
+			l) theme-list; return 0;;
+			h) usage; return 0;;
+			*) usage >&2; return 1;;
+		esac
+	done
+
+	shift "$((OPTIND -1 ))"
+
+	if (($# == 0)); then
+		usage >&2
+		return 1
+	fi
+
+	load-theme "$THEME"
+
+	trap cleanup EXIT
+
+	debug "starting spinner"
+	spinner "$@" &
+	SPINNER_PID=$!
+
+	debug "SPINNER_PID=$SPINNER_PID"
+
+	"$@" 2>&1 | while IFS= read -r line; do
+		echo -n "$line"
+		printf '\033[K\n'
+	done
+}
+
+main "$@"
