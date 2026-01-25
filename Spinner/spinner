@@ -3,7 +3,7 @@
 SPINNER_PID=
 DEBUG=false
 THEME=default
-CHARS=('<\>' '<|>' '</>' '<–>')
+CHARS=()
 SPINNERS_FILE=~/Desktop/Code/Bash/Spinner/spinners.json
 
 usage() {
@@ -51,13 +51,17 @@ load-theme() {
 	local theme=$1
 	local CHARS_JSON=$(jq -r ".\"$theme\".frames[]" "$SPINNERS_FILE" 2>/dev/null)
 	if [[ -n $CHARS_JSON ]]; then
-		mapfile -t CHARS <<< "$CHARS_JSON"
+		while IFS= read -r line; do
+			CHARS+=("$line")
+		done <<< "$CHARS_JSON"
 		debug "setting theme to: $theme"
 	elif [[ $theme != "default" ]]; then
 		echo "bad theme name: $theme"
 		echo "using default theme"
+		CHARS=('<\>' '<|>' '</>' '<–>')
 	else
 		debug "no theme set"
+		CHARS=('<\>' '<|>' '</>' '<–>')
 	fi
 }
 
