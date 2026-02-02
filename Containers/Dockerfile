@@ -16,14 +16,6 @@ RUN ln -s /usr/bin/batcat /usr/local/bin/bat
 RUN useradd -m -s /bin/bash dev
 ENV HOME=/home/dev
 
-# Copy dotfiles
-COPY bashrc ${HOME}/.bashrc
-COPY vimrc  ${HOME}/.vimrc
-COPY viminfo ${HOME}/.viminfo
-COPY vim/ ${HOME}/.vim/
-
-RUN chown -R dev:dev ${HOME}
-
 USER dev
 WORKDIR ${HOME}
 

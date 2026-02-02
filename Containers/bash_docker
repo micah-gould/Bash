@@ -6,12 +6,17 @@ HOSTNAME="${USER}_custom_bash"
 HOME_DIR="/home/dev"
 
 docker run -it --rm \
-    --name "${CONTAINER_NAME}" \
-    --hostname "${HOSTNAME}" \
-    --user=$(id -u ${USER}):$(id -g ${USER}) \
-    -v ${HOME}/Desktop/Code/Bash:${HOME_DIR}/Desktop/Code/Bash \
-    -e TERM=$TERM \
-    --workdir=${HOME_DIR}/Desktop/Code/Bash \
-    "${IMAGE}"
+  --name "${CONTAINER_NAME}" \
+  --hostname "${HOSTNAME}" \
+  --user "$(id -u):$(id -g)" \
+  -e TERM="$TERM" \
+  -v "$HOME/.bashrc:$HOME_DIR/.bashrc:ro" \
+  -v "$HOME/.vimrc:$HOME_DIR/.vimrc:ro" \
+  -v "$HOME/.vim:$HOME_DIR/.vim:ro" \
+  -v "$HOME/.gitconfig:$HOME_DIR/.gitconfig:ro" \
+  -v "$HOME/Desktop/Code/Bash:$HOME_DIR/Bash" \
+  --workdir "$HOME_DIR/Bash" \
+  "${IMAGE}"
 
 clear
+
