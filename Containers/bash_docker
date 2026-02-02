@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+IMAGE="my_bash_env"
+CONTAINER_NAME="${USER}_bash_env"
+HOSTNAME="${USER}_custom_bash"
+HOME_DIR="/home/dev"
+
+docker run -it --rm \
+    --name "${CONTAINER_NAME}" \
+    --hostname "${HOSTNAME}" \
+    --user=$(id -u ${USER}):$(id -g ${USER}) \
+    -v ${HOME}/Desktop/Code/Bash:${HOME_DIR}/Desktop/Code/Bash \
+    -e TERM=$TERM \
+    --workdir=${HOME_DIR}/Desktop/Code/Bash \
+    "${IMAGE}"
+
+clear
