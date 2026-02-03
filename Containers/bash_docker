@@ -24,7 +24,7 @@ docker run -it --rm \
   -v "$PARENT_DIR:$HOME_DIR/Bash" \
   --workdir "$HOME_DIR/Bash" \
   "${IMAGE}" \
-  bash -c 'shopt -s dotglob nullglob ; cp -u "$HOME"/.dotfiles/* "$HOME" ; rsync -au --existing "$HOME/." "$HOME/.dotfiles/" && exec bash'
+  bash -c 'shopt -s dotglob nullglob && ln -s "$HOME"/.dotfiles/* "$HOME" && exec bash'
 
 #clear
 
