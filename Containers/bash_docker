@@ -4,6 +4,9 @@ IMAGE="my_bash_env"
 CONTAINER_NAME="${USER}_bash_env"
 HOSTNAME="${USER}_custom_bash"
 HOME_DIR="/home/dev"
+SCRIPT_PATH="$(realpath "${BASH_SOURCE[0]}")"
+SCRIPT_DIR="$(dirname "$SCRIPT_PATH")"
+PARENT_DIR="$(dirname "$SCRIPT_DIR")"
 
 docker run -it --rm \
   --name "${CONTAINER_NAME}" \
@@ -13,13 +16,15 @@ docker run -it --rm \
   -v $HOME/.ssh:/root/.ssh:ro \
   -v $SSH_AUTH_SOCK:/ssh-agent \
   -e SSH_AUTH_SOCK=/ssh-agent \
+  -v "$SCRIPT_DIR/.dotfiles:$HOME_DIR/.dotfiles" \
   -v "$HOME/.bashrc:$HOME_DIR/.bashrc:ro" \
   -v "$HOME/.vimrc:$HOME_DIR/.vimrc:ro" \
   -v "$HOME/.vim:$HOME_DIR/.vim:ro" \
   -v "$HOME/.gitconfig:$HOME_DIR/.gitconfig:ro" \
-  -v "$HOME/Desktop/Code/Bash:$HOME_DIR/Bash" \
+  -v "$PARENT_DIR:$HOME_DIR/Bash" \
   --workdir "$HOME_DIR/Bash" \
-  "${IMAGE}"
+  "${IMAGE}" \
+  bash -c 'shopt -s dotglob nullglob ; cp -u "$HOME"/.dotfiles/* "$HOME" ; rsync -au --existing "$HOME/." "$HOME/.dotfiles/" && exec bash'
 
-clear
+#clear
 
