@@ -4,27 +4,41 @@ IMAGE="my_bash_env"
 CONTAINER_NAME="${USER}_bash_env"
 HOSTNAME="${USER}_custom_bash"
 HOME_DIR="/home/dev"
+
 SCRIPT_PATH="$(realpath "${BASH_SOURCE[0]}")"
 SCRIPT_DIR="$(dirname "$SCRIPT_PATH")"
 PARENT_DIR="$(dirname "$SCRIPT_DIR")"
+HIDDEN_PATH="$HOME_DIR/Bash/$(basename "$SCRIPT_DIR")"
 
-docker run -it --rm \
-  --name "${CONTAINER_NAME}" \
-  --hostname "${HOSTNAME}" \
-  --user "$(id -u):$(id -g)" \
-  -e TERM="$TERM" \
-  -v $HOME/.ssh:/root/.ssh:ro \
-  -v $SSH_AUTH_SOCK:/ssh-agent \
-  -e SSH_AUTH_SOCK=/ssh-agent \
-  -v "$SCRIPT_DIR/.dotfiles:$HOME_DIR/.dotfiles" \
-  -v "$HOME/.bashrc:$HOME_DIR/.bashrc:ro" \
-  -v "$HOME/.vimrc:$HOME_DIR/.vimrc:ro" \
-  -v "$HOME/.vim:$HOME_DIR/.vim:ro" \
-  -v "$HOME/.gitconfig:$HOME_DIR/.gitconfig:ro" \
-  -v "$PARENT_DIR:$HOME_DIR/Bash" \
-  --workdir "$HOME_DIR/Bash" \
-  "${IMAGE}" \
-  bash -c 'shopt -s dotglob nullglob && ln -s "$HOME"/.dotfiles/* "$HOME" && exec bash'
+# Base docker args
+DOCKER_ARGS=(
+	-it --rm
+	--name "${CONTAINER_NAME}"
+	--hostname "${HOSTNAME}"
+	--user "$(id -u):$(id -g)"
+	-e TERM="$TERM"
+	--workdir "$HOME_DIR/Bash"
+	-v "$SCRIPT_DIR/.dotfiles:$HOME_DIR/.dotfiles"
+	-v "$PARENT_DIR:$HOME_DIR/Bash"
+	--mount type=tmpfs,destination="$HIDDEN_PATH"
+)
 
-#clear
+# SSH (keys + agent)
+[[ -d "$HOME/.ssh" ]] && DOCKER_ARGS+=(-v "$HOME/.ssh:/root/.ssh:ro")
+[[ -S "$SSH_AUTH_SOCK" ]] && DOCKER_ARGS+=(
+	-v "$SSH_AUTH_SOCK:/ssh-agent"
+	-e SSH_AUTH_SOCK=/ssh-agent
+)
 
+# Dotfiles
+[[ -f "$HOME/.bashrc" ]]   && DOCKER_ARGS+=(-v "$HOME/.bashrc:$HOME_DIR/.bashrc:ro")
+[[ -f "$HOME/.vimrc" ]]    && DOCKER_ARGS+=(-v "$HOME/.vimrc:$HOME_DIR/.vimrc:ro")
+[[ -d "$HOME/.vim" ]]      && DOCKER_ARGS+=(-v "$HOME/.vim:$HOME_DIR/.vim:ro")
+[[ -f "$HOME/.gitconfig" ]]&& DOCKER_ARGS+=(-v "$HOME/.gitconfig:$HOME_DIR/.gitconfig:ro")
+
+docker run "${DOCKER_ARGS[@]}" "${IMAGE}" \
+	bash -c '
+		shopt -s dotglob nullglob
+		ln -s "$HOME"/.dotfiles/* "$HOME"
+		exec bash
+	'
