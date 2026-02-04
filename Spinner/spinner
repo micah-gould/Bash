@@ -4,7 +4,7 @@ SPINNER_PID=
 DEBUG=false
 THEME=default
 CHARS=()
-SPINNERS_FILE=~/Desktop/Code/Bash/Spinner/spinners.json
+SPINNERS_FILE="$(dirname "$(realpath "${BASH_SOURCE[0]}")")/spinners.json"
 
 usage() {
 	local prog=${0##*/}

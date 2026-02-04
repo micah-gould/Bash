@@ -8,6 +8,7 @@ RUN apt-get update && apt-get install -y \
     vim \
     bat \
     curl \
+    jq \
     ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
