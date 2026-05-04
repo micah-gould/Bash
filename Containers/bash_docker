@@ -34,6 +34,9 @@ DOCKER_ARGS=(
 [[ -f "$HOME/.vimrc" ]]    && DOCKER_ARGS+=(-v "$HOME/.vimrc:$HOME_DIR/.vimrc:ro")
 [[ -d "$HOME/.vim" ]]      && DOCKER_ARGS+=(-v "$HOME/.vim:$HOME_DIR/.vim:ro")
 [[ -f "$HOME/.gitconfig" ]]&& DOCKER_ARGS+=(-v "$HOME/.gitconfig:$HOME_DIR/.gitconfig:ro")
+[[ -f "$HOME/.gitignore_global" ]]&& DOCKER_ARGS+=(-v "$HOME/.gitignore_global:$HOME_DIR/.gitignore_global:ro")
+
+git -C "$PARENT_DIR" ls-files Containers/ | xargs git -C "$PARENT_DIR" update-index --skip-worktree
 
 docker run "${DOCKER_ARGS[@]}" "${IMAGE}" \
 	bash -c '
@@ -41,3 +44,5 @@ docker run "${DOCKER_ARGS[@]}" "${IMAGE}" \
 		ln -sf "$HOME"/.dotfiles/* "$HOME"/ 2>/dev/null; true
 		exec bash
 	'
+
+git -C "$PARENT_DIR" ls-files Containers/ | xargs git -C "$PARENT_DIR" update-index --no-skip-worktree
