@@ -15,7 +15,6 @@ DOCKER_ARGS=(
 	-it --rm
 	--name "${CONTAINER_NAME}"
 	--hostname "${HOSTNAME}"
-	--user "$(id -u):$(id -g)"
 	-e TERM="$TERM"
 	--workdir "$HOME_DIR/Bash"
 	-v "$SCRIPT_DIR/.dotfiles:$HOME_DIR/.dotfiles"
@@ -39,6 +38,6 @@ DOCKER_ARGS=(
 docker run "${DOCKER_ARGS[@]}" "${IMAGE}" \
 	bash -c '
 		shopt -s dotglob nullglob
-		ln -s "$HOME"/.dotfiles/* "$HOME"
+		ln -sf "$HOME"/.dotfiles/* "$HOME"/ 2>/dev/null; true
 		exec bash
 	'
